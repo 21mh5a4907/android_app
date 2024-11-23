@@ -50,15 +50,15 @@
             android:contentDescription="Password input field"/>
 
         <Button
+            android:id="@+id/login_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Login"
-            android:backgroundTint="@color/white"
-            android:textColor="@color/black"
-            android:textSize="20sp"
             android:layout_marginTop="25dp"
-            android:id="@+id/login_btn"
-            android:contentDescription="Login button"/>
+            android:backgroundTint="#086DFD"
+            android:contentDescription="Login button"
+            android:text="Login"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
 
         <Button
             android:id="@+id/register_redirect_btn"
@@ -66,8 +66,8 @@
             android:layout_height="wrap_content"
             android:text="Go to Register"
             android:layout_marginTop="10dp"
-            android:backgroundTint="@color/white"
-            android:textColor="@color/black"
+            android:backgroundTint="#086DFD"
+            android:textColor="@color/white"
             android:contentDescription="Go to Register button"/>
 
     </LinearLayout>

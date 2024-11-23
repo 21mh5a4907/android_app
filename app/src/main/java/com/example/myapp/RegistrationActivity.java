@@ -20,7 +20,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
     private EditText usernameInput, emailInput, passwordInput;
     private String username, email, password;
-    private final String REGISTER_URL = "http://172.16.20.76:8000/api/register/";
+    private final String REGISTER_URL = "http://10.0.2.2:8000/api/register/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -19,7 +19,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText usernameInput, passwordInput;
     private String username, password;
-    private final String LOGIN_URL = "http://172.16.20.76:8000/api/login/"; // Replace with your backend URL
+    private final String LOGIN_URL = "http://10.0.2.2:8000/api/login/"; // Replace with your backend URL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

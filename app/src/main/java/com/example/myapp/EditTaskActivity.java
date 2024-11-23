@@ -141,7 +141,7 @@ public class EditTaskActivity extends AppCompatActivity {
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL("http://172.16.20.76:8000/api/tasks/" + taskId + "/");
+                URL url = new URL("http://10.0.2.2:8000/api/tasks/" + taskId + "/");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("PUT");
                 connection.setRequestProperty("Content-Type", "application/json");

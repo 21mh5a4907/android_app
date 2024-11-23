@@ -72,7 +72,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     android:textSize="12sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="#FBFAFA"
                     android:background="@drawable/status_background"/>
 
                 <TextView

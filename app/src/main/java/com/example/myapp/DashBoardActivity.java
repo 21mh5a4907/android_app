@@ -102,7 +102,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL("http://172.16.20.76:8000/api/logout/");
+                URL url = new URL("http://10.0.2.2:8000/api/logout/");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Authorization", "Bearer " + getAccessToken());
@@ -273,7 +273,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             try {
-                URL url = new URL("http://172.16.20.76:8000/api/tasks/list/");
+                URL url = new URL("http://10.0.2.2:8000/api/tasks/list/");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setDoInput(true);
@@ -426,7 +426,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL("http://172.16.20.76:8000/api/tasks/delete/" + task.getId() + "/");
+                URL url = new URL("http://10.0.2.2:8000/api/tasks/delete/" + task.getId() + "/");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("DELETE");
                 connection.setRequestProperty("Authorization", "Bearer " + getAccessToken());

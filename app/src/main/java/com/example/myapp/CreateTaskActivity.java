@@ -124,7 +124,7 @@ public class CreateTaskActivity extends AppCompatActivity {
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL("http://172.16.20.76:8000/api/tasks/");
+                URL url = new URL("http://10.0.2.2:8000/api/tasks/");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json");
