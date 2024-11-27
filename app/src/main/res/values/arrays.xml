@@ -1,0 +1,16 @@
+<resources>
+    <!-- Priority options -->
+    <string-array name="priority_options">
+        <item>All</item>
+        <item>Low</item>
+        <item>Medium</item>
+        <item>High</item>
+    </string-array>
+
+    <!-- Progress options -->
+    <string-array name="progress_options">
+        <item>All</item>
+        <item>Pending</item>
+        <item>Completed</item>
+    </string-array>
+</resources>

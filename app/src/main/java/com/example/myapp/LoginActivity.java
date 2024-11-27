@@ -105,7 +105,7 @@ public class LoginActivity extends AppCompatActivity {
                             navigateToDashBoard();
                         } else {
                             // Handle the case where the tokens are missing
-                            Toast.makeText(this, "Unexpected server response", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
                         }
 
                     } catch (Exception e) {

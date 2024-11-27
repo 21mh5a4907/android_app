@@ -1,11 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
+ <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#142D8C">
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true">
@@ -13,15 +15,31 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/white"
             android:orientation="vertical"
+            android:backgroundTint="@color/white"
             android:padding="16dp">
 
+            <!-- Dashboard Title -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:backgroundTint="@color/black"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/profile_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Profile"
+                    android:src="@drawable/ic_profile"
+                    android:scaleType="centerInside"
+                    android:padding="0dp"
+                    app:tint="#2196F3" />
+
 
                 <TextView
                     android:id="@+id/dashboard_title"
@@ -29,315 +47,418 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Dashboard"
-                    android:textSize="24sp"
-                    android:textColor="#333"
-                    android:textStyle="bold"/>
+                    android:textAlignment="center"
+                    android:textColor="#2196F3"
+                    android:textSize="50sp"
+                    android:textStyle="bold" />
 
                 <ImageButton
                     android:id="@+id/logout_button"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_logout"
                     android:contentDescription="Logout"
-                    android:padding="12dp"
-                    app:tint="#FF5722"/>
+                    android:src="@drawable/ic_logout"
+                    app:tint="#FF5722" />
             </LinearLayout>
 
-            <!-- Task Statistics: Total Tasks, Completed Tasks -->
+            <!-- Total Tasks -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/rounded_corner"
+                android:backgroundTint="#A5D7FF"
+                android:gravity="center"
                 android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:padding="16dp">
 
-                <!-- Total Tasks -->
+                <ImageView
+                    android:layout_width="45dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="16dp"
+                    android:contentDescription="Total Tasks"
+                    android:src="@drawable/total" />
+
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:padding="16dp"
-                    android:background="#F0F0F0"
-                    android:elevation="4dp"
-                    android:layout_marginEnd="8dp">
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/total_tasks"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Total Tasks"
-                        android:textSize="16sp"
                         android:textColor="#555"
-                        android:textStyle="bold"/>
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/total_task_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="32sp"
                         android:textColor="#333"
-                        android:textStyle="bold"/>
-                </LinearLayout>
-
-                <!-- Completed Tasks -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:background="#E1F5E5"
-                    android:elevation="4dp">
-
-                    <TextView
-                        android:id="@+id/completed_tasks"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Completed Tasks"
-                        android:textSize="16sp"
-                        android:textColor="#555"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/completed_task_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
                         android:textSize="32sp"
-                        android:textColor="#388E3C"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Task Statistics: Pending Tasks and Priority Tasks -->
+            <!-- Finished and Pending Tasks -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <!-- Finished Tasks -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_corner"
+                    android:gravity="center"
+                    android:backgroundTint="#C1F0AC"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="63dp"
+                        android:layout_height="60dp"
+                        android:layout_marginEnd="16dp"
+                        android:contentDescription="Completed Tasks"
+                        android:src="@drawable/completed" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/completed_tasks"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Finished Tasks"
+                            android:textColor="#555"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/completed_task_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#388E3C"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- Pending Tasks -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:background="#FFEBEE"
-                    android:elevation="4dp"
-                    android:layout_marginEnd="8dp">
-
-                    <TextView
-                        android:id="@+id/pending_tasks"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Pending Tasks"
-                        android:textSize="16sp"
-                        android:textColor="#555"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/pending_task_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="32sp"
-                        android:textColor="#D32F2F"
-                        android:textStyle="bold"/>
-                </LinearLayout>
-
-                <!-- Tasks by Priority -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:background="#FFF8E1"
-                    android:elevation="4dp">
-
-                    <TextView
-                        android:id="@+id/tasks_by_priority"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tasks by Priority"
-                        android:textSize="16sp"
-                        android:textColor="#555"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/priority_task_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Low: 0, Medium: 0, High: 0"
-                        android:textSize="16sp"
-                        android:textColor="#333"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Filters Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Filter Tasks"
-                android:textSize="20sp"
-                android:textColor="#333"
-                android:textStyle="bold"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Status Filter -->
-            <Spinner
-                android:id="@+id/status_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:padding="12dp"
-                android:background="@android:drawable/btn_dropdown"
-                android:spinnerMode="dropdown"/>
-
-            <!-- Priority Filter -->
-            <Spinner
-                android:id="@+id/priority_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:padding="12dp"
-                android:background="@android:drawable/btn_dropdown"
-                android:spinnerMode="dropdown"/>
-
-            <!-- Date Range Filter -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_marginBottom="16dp">
-
-                <!-- Start Date -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Start Date"
-                        android:textSize="14sp"
-                        android:textColor="#555"/>
-
-                    <TextView
-                        android:id="@+id/start_date_picker"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="Select Start Date"
-                        android:textSize="14sp"
-                        android:padding="12dp"
-                        android:background="@drawable/date_picker_background"
-                        android:textColor="@android:color/black"
-                        android:gravity="center_vertical|start"/>
-                </LinearLayout>
-
-                <!-- End Date -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="End Date"
-                        android:textSize="14sp"
-                        android:textColor="#555"/>
-
-                    <TextView
-                        android:id="@+id/end_date_picker"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="Select End Date"
-                        android:textSize="14sp"
-                        android:padding="12dp"
-                        android:background="@drawable/date_picker_background"
-                        android:textColor="@android:color/black"
-                        android:gravity="center_vertical|start"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Filter Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_marginBottom="16dp">
-
-                <Button
-                    android:id="@+id/apply_filters"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="Apply Filters"
-                    android:textColor="#FFF"
-                    android:backgroundTint="#4CAF50"/>
-
-                <Button
-                    android:id="@+id/clear_filters"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Clear Filters"
-                    android:textColor="#FFF"
-                    android:backgroundTint="#FF5722"/>
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_corner"
+                    android:gravity="center"
+                    android:backgroundTint="#F6BDBD"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="45dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="16dp"
+                        android:contentDescription="Pending Tasks"
+                        android:src="@drawable/pending" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/pending_tasks"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pending Tasks"
+                            android:textColor="#555"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/pending_task_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#D32F2F"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Tasks Overview -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Section Title -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Tasks Priority Overview"
+                    android:textColor="#2196F3"
+                    android:textSize="30sp"
+                    android:textStyle="bold" />
+
+                <!-- Priority Cards -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- Low Priority -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/rounded_corner"
+                        android:backgroundTint="#A5D7FF"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Low"
+                            android:textColor="#555"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/low_priority_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#333"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Medium Priority -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/rounded_corner"
+                        android:backgroundTint="#FFD54F"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Medium"
+                            android:textColor="#555"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/medium_priority_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#333"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- High Priority -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/rounded_corner"
+                        android:backgroundTint="#F6BDBD"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="High"
+                            android:textColor="#555"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/high_priority_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#D32F2F"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+            <SearchView
+                android:id="@+id/search_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:iconifiedByDefault="false"
+                android:queryHint="Search tasks..." />
+
+            <!-- Filter task section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Filter for priority and progress of the task -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Filter by Priority"
+                            android:textColor="#2196F3"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <Spinner
+                            android:id="@+id/priority_filter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/priority_options"
+                            android:minHeight="48dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Filter by Progress"
+                            android:textColor="#2196F3"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <Spinner
+                            android:id="@+id/progress_filter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/progress_options"
+                            android:minHeight="48dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Apply and Clear Filters Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <Button
+                        android:id="@+id/btn_apply_filters"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Apply Filters"
+                        android:background="@drawable/rounded_corner"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#2196F3"
+                        android:textSize="18sp"
+                        android:padding="16dp" />
+
+                    <Button
+                        android:id="@+id/btn_clear_filters"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Clear Filters"
+                        android:background="@drawable/rounded_corner"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#FF5722"
+                        android:textSize="18sp"
+                        android:padding="16dp" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Available Tasks Section -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Available Tasks"
-                android:textSize="20sp"
-                android:textColor="#333"
-                android:textStyle="bold"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:background="#FCFDFF"
+                android:text="Available Tasks"
+                android:textColor="#2196F3"
+                android:textSize="30sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/tasks_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
                 android:clipToPadding="false"
                 android:paddingTop="8dp"
                 android:paddingBottom="80dp" />
-
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_task"
+    <!-- Create Task Button -->
+    <Button
+        android:id="@+id/btn_create_task"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="Add new task"
-        app:srcCompat="@drawable/ic_add"
-        app:backgroundTint="#4CAF50"/>
-
+        android:text="ADD"
+        android:background="@drawable/rounded_corner"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#F602E2"
+        android:textSize="18sp"
+        android:padding="16dp" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

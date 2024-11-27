@@ -117,6 +117,9 @@ public class EditTaskActivity extends AppCompatActivity {
                 calendar.setTime(dueDate);
             }
 
+            // Get the current date
+            Calendar currentDate = Calendar.getInstance();
+
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     this,
                     (view, year, month, dayOfMonth) -> {
@@ -129,6 +132,10 @@ public class EditTaskActivity extends AppCompatActivity {
                     calendar.get(Calendar.MONTH),
                     calendar.get(Calendar.DAY_OF_MONTH)
             );
+
+            // Set the minimum date to be the current date (today)
+            datePickerDialog.getDatePicker().setMinDate(currentDate.getTimeInMillis());
+
             datePickerDialog.show();
         });
     }

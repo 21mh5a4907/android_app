@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="@drawable/__eczu7skp156k8ne_nn0dmq">
+    android:background="@color/white">
 
     <!-- Title Text: Centered -->
     <TextView
@@ -13,6 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Task Manager"
+        android:textColor="#2E5AC1"
         android:textSize="40sp"
         android:textStyle="bold"
         android:layout_centerHorizontal="true"
@@ -28,8 +29,9 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="95dp"
         android:layout_marginEnd="0dp"
-        android:fontFamily="cursive"
-        android:text="Manage your tasks effectively with Task Manager.\nKeep track of deadlines, set reminders, and collaborate with your team to boost productivity."
+        android:fontFamily="sans-serif-condensed-medium"
+        android:text="Stay on top of your tasks with Task Manager.Track your deadlines, set notifications, and work together with your team to enhance productivity."
+        android:textColor="#384D8C"
         android:textSize="25sp" />
 
     <ImageView
@@ -38,9 +40,9 @@
         android:layout_height="307dp"
         android:layout_below="@id/description_text"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="0dp"
-        android:src="@drawable/task_management_process_removebg_preview" />
+        android:layout_marginTop="-13dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/images_removebg_preview" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -56,17 +58,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Login"
-            android:textSize="25dp"
+            android:textSize="15dp"
+            android:textColor="@color/white"
+            android:background="@drawable/rounded_corner"
+            android:backgroundTint="#204394"
             android:layout_marginEnd="15dp"/>
 
-        <!-- Register Button -->
         <Button
             android:id="@+id/register_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Register"
-            android:textSize="25dp"
-            android:layout_marginStart="15dp"/>
+            android:layout_marginStart="15dp"
+            android:background="@drawable/rounded_corner"
+            android:backgroundTint="#204394"
+            android:text="SignUp"
+            android:textColor="@color/white"
+            android:textSize="15dp" />
+
+        <!-- Register Button -->
     </LinearLayout>
+
+
 
 </RelativeLayout>

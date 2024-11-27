@@ -15,8 +15,7 @@
         <ImageView
             android:layout_width="160dp"
             android:layout_height="160dp"
-            android:src="@drawable/baseline_account_circle_24"
-            />
+            android:src="@drawable/baseline_account_circle_24" />
 
         <EditText
             android:layout_width="match_parent"
@@ -24,20 +23,20 @@
             android:layout_marginTop="32dp"
             android:hint="UserName"
             android:textColor="@color/white"
-            android:textSize="30sp"
+            android:textSize="18sp"
             android:textColorHint="@color/white"
             android:background="@drawable/rounded_corner"
             android:padding="18dp"
-            android:inputType="text"
-            android:id="@+id/username_input"/>
 
+        android:inputType="text"
+        android:id="@+id/username_input"/>
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="Email"
             android:textColor="@color/white"
-            android:textSize="30sp"
+            android:textSize="18sp"
             android:textColorHint="@color/white"
             android:background="@drawable/rounded_corner"
             android:padding="18dp"
@@ -50,7 +49,7 @@
             android:layout_marginTop="16dp"
             android:hint="Password"
             android:textColor="@color/white"
-            android:textSize="30sp"
+            android:textSize="18sp"
             android:textColorHint="@color/white"
             android:background="@drawable/rounded_corner"
             android:padding="18dp"
@@ -58,13 +57,14 @@
             android:id="@+id/password_input"/>
 
         <Button
-            android:layout_width="match_parent"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:text="Register"
-            android:backgroundTint="@color/white"
-            android:textColor="@color/black"
-            android:textSize="30sp"
+            android:backgroundTint="#093DFF"
+            android:textColor="@color/white"
+            android:textSize="20sp"
             android:layout_marginTop="25dp"
+            android:background="@drawable/rounded_corner"
             android:id="@+id/register_btn"/>
 
     </LinearLayout>

@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
 public class CreateTaskActivity extends AppCompatActivity {
     private EditText titleEditText;
     private EditText descriptionEditText;
@@ -31,6 +32,7 @@ public class CreateTaskActivity extends AppCompatActivity {
     private Spinner prioritySpinner;
     private TextView dueDatePicker;
     private Button createButton;
+    private Button cancelButton;  // Declare Cancel Button
     private Date dueDate;
     private SimpleDateFormat apiDateFormat;
     private SimpleDateFormat displayDateFormat;
@@ -42,12 +44,13 @@ public class CreateTaskActivity extends AppCompatActivity {
         setTitle("Create New Task");
 
         apiDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        displayDateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+        displayDateFormat = new SimpleDateFormat("MM dd, yyyy", Locale.getDefault());
 
         initializeViews();
         setupSpinners();
         setupDatePicker();
         setupCreateButton();
+        setupCancelButton();  // Setup Cancel Button functionality
     }
 
     private void initializeViews() {
@@ -57,12 +60,13 @@ public class CreateTaskActivity extends AppCompatActivity {
         prioritySpinner = findViewById(R.id.create_task_priority);
         dueDatePicker = findViewById(R.id.create_task_due_date);
         createButton = findViewById(R.id.create_task_button);
+        cancelButton = findViewById(R.id.cancel_task_button);  // Initialize Cancel Button
     }
 
     private void setupSpinners() {
         ArrayAdapter<CharSequence> statusAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item,
-                new String[]{"yet-to-start", "in-progress", "completed"});
+                new String[]{"yet-to-start", "in-progress", "completed",});
         statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(statusAdapter);
 
@@ -80,6 +84,9 @@ public class CreateTaskActivity extends AppCompatActivity {
                 calendar.setTime(dueDate);
             }
 
+            // Get the current date
+            Calendar currentDate = Calendar.getInstance();
+
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     this,
                     (view, year, month, dayOfMonth) -> {
@@ -92,6 +99,10 @@ public class CreateTaskActivity extends AppCompatActivity {
                     calendar.get(Calendar.MONTH),
                     calendar.get(Calendar.DAY_OF_MONTH)
             );
+
+            // Set the minimum date to be the current date (today)
+            datePickerDialog.getDatePicker().setMinDate(currentDate.getTimeInMillis());
+
             datePickerDialog.show();
         });
     }
@@ -101,6 +112,13 @@ public class CreateTaskActivity extends AppCompatActivity {
             if (validateInput()) {
                 createTask();
             }
+        });
+    }
+
+    private void setupCancelButton() {
+        cancelButton.setOnClickListener(v -> {
+            // On Cancel, finish the activity without creating a task
+            finish();
         });
     }
 

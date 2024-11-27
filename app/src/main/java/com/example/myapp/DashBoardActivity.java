@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -32,7 +34,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.graphics.Rect;
-import android.view.View;
 
 import android.content.Intent;
 import android.widget.EditText;
@@ -40,34 +41,32 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import android.app.AlertDialog;
 import android.widget.ImageButton;
+import android.widget.SearchView;
 
-public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.OnTaskActionListener{
+public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.OnTaskActionListener {
     private TextView totalTasksTextView;
     private TextView completedTasksTextView;
     private TextView pendingTasksTextView;
-    private TextView priorityTaskCountTextView;
-    private Spinner statusSpinner;
-    private Spinner prioritySpinner;
+    private TextView lowPriorityCountTextView;
+    private TextView mediumPriorityCountTextView;
+    private TextView highPriorityCountTextView;
 
-    private TextView startDatePicker;
-
-    private TextView endDatePicker;
-    private Button applyFilters;
-    private Button clearFilters;
-    private Date startDate;
-    private Date endDate;
     private List<Task> allTasks;
-
     private static final String DATE_FORMAT_DISPLAY = "MMM dd, yyyy";
     private static final String DATE_FORMAT_API = "yyyy-MM-dd";
     private SimpleDateFormat displayDateFormat;
     private SimpleDateFormat apiDateFormat;
-
     private RecyclerView tasksRecyclerView;
     private TaskAdapter taskAdapter;
     private FloatingActionButton fabAddTask;
-
     private ImageButton logoutButton;
+    private SearchView searchView;
+
+    private Spinner priorityFilter;
+    private Spinner progressFilter;
+    private Button btnApplyFilters;
+    private ImageButton profileButton;
+    private Button btnClearFilters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,14 +80,28 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         apiDateFormat = new SimpleDateFormat(DATE_FORMAT_API, Locale.getDefault());
 
         initializeViews();
-        initializeFilterViews();
-        setupSpinners();
-        setupDatePickers();
-        setupFilterButtons();
         setupFab();
+        setupSearchView();
+        setupFilters();
         fetchTasksFromServer();
-    }
 
+        // Check if user is authenticated
+        if (getAccessToken() == null) {
+            // Redirect to login if not authenticated
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            // Refresh tasks after profile update
+            fetchTasksFromServer();
+        }
+    }
     private void showLogoutConfirmation() {
         new AlertDialog.Builder(this)
                 .setTitle("Logout")
@@ -146,9 +159,10 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
             }
         }).start();
     }
+
     private void setupFab() {
-        fabAddTask = findViewById(R.id.fab_add_task);
-        fabAddTask.setOnClickListener(v -> {
+        Button btnCreateTask = findViewById(R.id.btn_create_task);
+        btnCreateTask.setOnClickListener(v -> {
             Intent intent = new Intent(this, CreateTaskActivity.class);
             startActivity(intent);
         });
@@ -158,9 +172,31 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         totalTasksTextView = findViewById(R.id.total_task_count);
         completedTasksTextView = findViewById(R.id.completed_task_count);
         pendingTasksTextView = findViewById(R.id.pending_task_count);
-        priorityTaskCountTextView = findViewById(R.id.priority_task_count);
+        lowPriorityCountTextView = findViewById(R.id.low_priority_count);
+        mediumPriorityCountTextView = findViewById(R.id.medium_priority_count);
+        highPriorityCountTextView = findViewById(R.id.high_priority_count);
         tasksRecyclerView = findViewById(R.id.tasks_recycler_view);
+
+        // Add profile button initialization
+        profileButton = findViewById(R.id.profile_button);
+        profileButton.setOnClickListener(v -> openProfile());
+
         setupRecyclerView();
+    }
+
+    private void openProfile() {
+        Intent intent = new Intent(this, ProfileActivity.class);
+        // Pass task statistics to profile
+        intent.putExtra("total_tasks", totalTasksTextView.getText().toString());
+        intent.putExtra("completed_tasks", completedTasksTextView.getText().toString());
+        intent.putExtra("pending_tasks", pendingTasksTextView.getText().toString());
+
+        // Pass priority statistics
+        intent.putExtra("low_priority_tasks", lowPriorityCountTextView.getText().toString());
+        intent.putExtra("medium_priority_tasks", mediumPriorityCountTextView.getText().toString());
+        intent.putExtra("high_priority_tasks", highPriorityCountTextView.getText().toString());
+
+        startActivity(intent);
     }
 
     private void setupRecyclerView() {
@@ -179,94 +215,42 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         });
     }
 
+    private void setupSearchView() {
+        searchView = findViewById(R.id.search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
 
-    private void initializeFilterViews() {
-        statusSpinner = findViewById(R.id.status_spinner);
-        prioritySpinner = findViewById(R.id.priority_spinner);
-        startDatePicker = findViewById(R.id.start_date_picker);
-        endDatePicker = findViewById(R.id.end_date_picker);
-        applyFilters = findViewById(R.id.apply_filters);
-        clearFilters = findViewById(R.id.clear_filters);
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterTasks(newText);
+                return true;
+            }
+        });
     }
 
-    private void setupSpinners() {
-        ArrayAdapter<CharSequence> statusAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item,
-                new String[]{"All", "yet-to-start", "in-progress", "completed"});
-        statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        statusSpinner.setAdapter(statusAdapter);
-
-        ArrayAdapter<CharSequence> priorityAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item,
-                new String[]{"All", "low", "medium", "high"});
-        priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        prioritySpinner.setAdapter(priorityAdapter);
-    }
-
-    private void setupDatePickers() {
-        startDatePicker.setText("Select Start Date");
-        endDatePicker.setText("Select End Date");
-        startDatePicker.setOnClickListener(v -> showDatePicker(true));
-        endDatePicker.setOnClickListener(v -> showDatePicker(false));
-    }
-
-    private void setupFilterButtons() {
-        applyFilters.setOnClickListener(v -> applyTaskFilters());
-        clearFilters.setOnClickListener(v -> clearFilters());
-    }
-
-    private void showDatePicker(boolean isStartDate) {
-        Calendar calendar = Calendar.getInstance();
-        if (isStartDate && startDate != null) {
-            calendar.setTime(startDate);
-        } else if (!isStartDate && endDate != null) {
-            calendar.setTime(endDate);
+    private void filterTasks(String query) {
+        if (allTasks == null || allTasks.isEmpty()) {
+            return;
         }
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                (view, year, month, dayOfMonth) -> {
-                    Calendar selectedDate = Calendar.getInstance();
-                    selectedDate.set(year, month, dayOfMonth);
-                    setToStartOfDay(selectedDate);
+        List<Task> filteredTasks = new ArrayList<>();
+        for (Task task : allTasks) {
+            if (task.getTitle().toLowerCase().contains(query.toLowerCase()) ||
+                    task.getDescription().toLowerCase().contains(query.toLowerCase())) {
+                filteredTasks.add(task);
+            }
+        }
 
-                    Date selectedDateTime = selectedDate.getTime();
-                    TextView dateText = isStartDate ? startDatePicker : endDatePicker;
-
-                    if (isStartDate) {
-                        startDate = selectedDateTime;
-                        String formattedDate = displayDateFormat.format(startDate);
-                        dateText.setText(formattedDate);
-                        Log.d("DatePicker", "Set start date: " + formattedDate);
-                    } else {
-                        endDate = selectedDateTime;
-                        String formattedDate = displayDateFormat.format(endDate);
-                        dateText.setText(formattedDate);
-                        Log.d("DatePicker", "Set end date: " + formattedDate);
-                    }
-
-                    applyTaskFilters();
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
-
-        datePickerDialog.show();
-    }
-
-    private void setToStartOfDay(Calendar calendar) {
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+        updateUIWithTasks(filteredTasks);
     }
 
     private String getAccessToken() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
         return sharedPreferences.getString("access_token", null);
     }
-
 
     private void fetchTasksFromServer() {
         new Thread(() -> {
@@ -366,61 +350,6 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         }).start();
     }
 
-    private void applyTaskFilters() {
-        if (allTasks == null || allTasks.isEmpty()) {
-            Toast.makeText(this, "No tasks to filter", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            String selectedStatus = statusSpinner.getSelectedItem().toString();
-            String selectedPriority = prioritySpinner.getSelectedItem().toString();
-
-            // Log all tasks before filtering
-            Log.d("TaskFilter", "Before filtering - Total tasks: " + allTasks.size());
-            for (Task task : allTasks) {
-                Log.d("TaskFilter", String.format("Task - Title: %s, Status: %s, Priority: %s, Due Date: %s",
-                        task.getTitle(),
-                        task.getStatus(),
-                        task.getPriority(),
-                        task.getDueDate() != null ? apiDateFormat.format(task.getDueDate()) : "null"));
-            }
-
-            TaskFilter filter = new TaskFilter.Builder()
-                    .setStatus(selectedStatus)
-                    .setPriority(selectedPriority)
-                    .setDateRange(startDate, endDate)
-                    .build();
-
-            List<Task> filteredTasks = filter.apply(allTasks);
-
-            // Log filter parameters
-            Log.d("TaskFilter", String.format("Filter parameters - Status: %s, Priority: %s",
-                    selectedStatus, selectedPriority));
-            if (startDate != null || endDate != null) {
-                Log.d("TaskFilter", String.format("Date range: %s to %s",
-                        startDate != null ? apiDateFormat.format(startDate) : "none",
-                        endDate != null ? apiDateFormat.format(endDate) : "none"));
-            }
-
-            // Log filtered results
-            Log.d("TaskFilter", "After filtering - Tasks: " + filteredTasks.size());
-            for (Task task : filteredTasks) {
-                Log.d("TaskFilter", String.format("Filtered Task - Title: %s, Status: %s, Priority: %s, Due Date: %s",
-                        task.getTitle(),
-                        task.getStatus(),
-                        task.getPriority(),
-                        task.getDueDate() != null ? apiDateFormat.format(task.getDueDate()) : "null"));
-            }
-
-            updateUIWithTasks(filteredTasks);
-
-        } catch (IllegalArgumentException e) {
-            Log.e("TaskFilter", "Filter error: " + e.getMessage());
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
     @Override
     public void onDeleteTask(Task task) {
         new Thread(() -> {
@@ -489,19 +418,6 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         }
         startActivity(intent);
     }
-    private void clearFilters() {
-        statusSpinner.setSelection(0);
-        prioritySpinner.setSelection(0);
-        startDate = null;
-        endDate = null;
-        startDatePicker.setText("Select Start Date");
-        endDatePicker.setText("Select End Date");
-
-        if (allTasks != null) {
-            updateUIWithTasks(allTasks);
-            Toast.makeText(this, "Filters cleared", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     private void updateUIWithTasks(List<Task> tasks) {
         int totalTasks = tasks.size();
@@ -538,9 +454,51 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
         totalTasksTextView.setText(String.valueOf(totalTasks));
         completedTasksTextView.setText(String.valueOf(completedTasks));
         pendingTasksTextView.setText(String.valueOf(pendingTasks));
-        priorityTaskCountTextView.setText(String.format("Low: %d, Medium: %d, High: %d",
-                lowPriorityCount, mediumPriorityCount, highPriorityCount));
+        lowPriorityCountTextView.setText(String.valueOf(lowPriorityCount));
+        mediumPriorityCountTextView.setText(String.valueOf(mediumPriorityCount));
+        highPriorityCountTextView.setText(String.valueOf(highPriorityCount));
 
         taskAdapter.setTasks(tasks);
+    }
+
+    private void setupFilters() {
+        priorityFilter = findViewById(R.id.priority_filter);
+        progressFilter = findViewById(R.id.progress_filter);
+        btnApplyFilters = findViewById(R.id.btn_apply_filters);
+        btnClearFilters = findViewById(R.id.btn_clear_filters);
+
+        ArrayAdapter<CharSequence> priorityAdapter = ArrayAdapter.createFromResource(this, R.array.priority_options, android.R.layout.simple_spinner_item);
+        priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        priorityFilter.setAdapter(priorityAdapter);
+
+        ArrayAdapter<CharSequence> progressAdapter = ArrayAdapter.createFromResource(this, R.array.progress_options, android.R.layout.simple_spinner_item);
+        progressAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        progressFilter.setAdapter(progressAdapter);
+
+        btnApplyFilters.setOnClickListener(v -> applyFilters());
+        btnClearFilters.setOnClickListener(v -> clearFilters());
+    }
+
+    private void applyFilters() {
+        String selectedPriority = priorityFilter.getSelectedItem().toString();
+        String selectedProgress = progressFilter.getSelectedItem().toString();
+
+        List<Task> filteredTasks = new ArrayList<>();
+        for (Task task : allTasks) {
+            boolean priorityMatch = selectedPriority.equals("All") || task.getPriority().equalsIgnoreCase(selectedPriority);
+            boolean progressMatch = selectedProgress.equals("All") || task.getStatus().equalsIgnoreCase(selectedProgress);
+
+            if (priorityMatch && progressMatch) {
+                filteredTasks.add(task);
+            }
+        }
+
+        updateUIWithTasks(filteredTasks);
+    }
+
+    private void clearFilters() {
+        priorityFilter.setSelection(0); // Reset to the first item (All)
+        progressFilter.setSelection(0); // Reset to the first item (All)
+        updateUIWithTasks(allTasks);
     }
 }
