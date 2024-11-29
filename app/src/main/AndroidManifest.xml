@@ -2,8 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Internet permission -->
+    <!-- Permissions should be declared outside application tag but at the top -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Myapp"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <!-- MainActivity as the launcher activity -->
@@ -27,39 +32,34 @@
             </intent-filter>
         </activity>
 
-        <!-- LoginActivity declaration -->
+        <!-- Other Activities -->
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
 
-        <!-- RegistrationActivity declaration -->
         <activity
             android:name=".RegistrationActivity"
             android:exported="false" />
 
-        <activity android:name=".DashBoardActivity"/>
+        <activity
+            android:name=".DashBoardActivity"
+            android:exported="false" />
 
         <activity
             android:name=".EditTaskActivity"
             android:exported="false"
-            android:label="Edit Task"/>
+            android:label="Edit Task" />
 
         <activity
             android:name=".CreateTaskActivity"
             android:exported="false"
-            android:label="Create Task"/>
+            android:label="Create Task" />
+
         <activity
             android:name=".ProfileActivity"
             android:exported="false"
-            android:label="Profile"/>
-
-
+            android:label="Profile" />
 
     </application>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-
-
 
 </manifest>

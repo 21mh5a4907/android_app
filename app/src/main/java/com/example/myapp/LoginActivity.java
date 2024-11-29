@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -153,5 +155,28 @@ public class LoginActivity extends AppCompatActivity {
     private void navigateToRegister() {
         Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         startActivity(intent);
+    }
+    private void handleLoginResponse(JSONObject response) {
+        try {
+            String accessToken = response.getString("access");
+            String refreshToken = response.getString("refresh");
+
+            // Save tokens with "Bearer " prefix
+            SharedPreferences.Editor editor = getSharedPreferences("MyApp", MODE_PRIVATE).edit();
+            editor.putString("access_token", "Bearer " + accessToken);  // Add Bearer prefix here
+            editor.putString("refresh_token", refreshToken);
+            editor.apply();
+
+            // Log the token for debugging
+            Log.d("LoginActivity", "Token saved: Bearer " + accessToken);
+
+            // Navigate to Dashboard
+            Intent intent = new Intent(LoginActivity.this, DashBoardActivity.class);
+            startActivity(intent);
+            finish();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(LoginActivity.this, "Error parsing login response", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -94,6 +94,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
             return;
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -102,6 +103,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
             fetchTasksFromServer();
         }
     }
+
     private void showLogoutConfirmation() {
         new AlertDialog.Builder(this)
                 .setTitle("Logout")
@@ -185,17 +187,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
     }
 
     private void openProfile() {
-        Intent intent = new Intent(this, ProfileActivity.class);
-        // Pass task statistics to profile
-        intent.putExtra("total_tasks", totalTasksTextView.getText().toString());
-        intent.putExtra("completed_tasks", completedTasksTextView.getText().toString());
-        intent.putExtra("pending_tasks", pendingTasksTextView.getText().toString());
-
-        // Pass priority statistics
-        intent.putExtra("low_priority_tasks", lowPriorityCountTextView.getText().toString());
-        intent.putExtra("medium_priority_tasks", mediumPriorityCountTextView.getText().toString());
-        intent.putExtra("high_priority_tasks", highPriorityCountTextView.getText().toString());
-
+        Intent intent = new Intent(DashBoardActivity.this, ProfileActivity.class);
         startActivity(intent);
     }
 

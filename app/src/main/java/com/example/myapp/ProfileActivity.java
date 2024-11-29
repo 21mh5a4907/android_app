@@ -1,34 +1,67 @@
 package com.example.myapp;
-import com.bumptech.glide.Glide;
 
-
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+
+import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProfileActivity extends AppCompatActivity {
-    private static final int PICK_IMAGE_REQUEST = 1;
+    private static final String TAG = "ProfileActivity";
+    private static final String BASE_URL = "http://10.0.2.2:8000/api";
 
-    private EditText usernameEdit, emailEdit, passwordEdit;
-    private TextView totalTasksCount, completedTasksCount;
-    private ImageView profilePicture;
-    private Button updateButton, uploadImageButton;
-    private Uri selectedImageUri;
+    private ImageView imgProfilePicture;
+    private Button btnUploadPicture, btnRemovePicture, btnSaveProfile;
+    private EditText editUsername, editOldPassword, editNewPassword;
+    private ProgressBar progressBar;
+    private String authToken;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri imageUri = result.getData().getData();
+                    if (imageUri != null) {
+                        uploadProfilePicture(imageUri);
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,176 +69,288 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         initializeViews();
-        fetchUserProfile();
-        setupUpdateButton();
-        setupUploadImageButton();
+        loadAuthToken();
+        setupClickListeners();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserProfile();
     }
 
     private void initializeViews() {
-        usernameEdit = findViewById(R.id.profile_username);
-        emailEdit = findViewById(R.id.profile_email);
-        passwordEdit = findViewById(R.id.profile_new_password);
-        totalTasksCount = findViewById(R.id.total_tasks_count);
-        completedTasksCount = findViewById(R.id.completed_tasks_count);
-        profilePicture = findViewById(R.id .profile_picture);
-        updateButton = findViewById(R.id.update_profile_button);
-        uploadImageButton = findViewById(R.id.update_profile_button);
+        imgProfilePicture = findViewById(R.id.imgProfilePicture);
+        btnUploadPicture = findViewById(R.id.btnUploadPicture);
+        btnRemovePicture = findViewById(R.id.btnRemovePicture);
+        btnSaveProfile = findViewById(R.id.btnSaveProfile);
+        editUsername = findViewById(R.id.editUsername);
+        editOldPassword = findViewById(R.id.editOldPassword);
+        editNewPassword = findViewById(R.id.editNewPassword);
+        progressBar = findViewById(R.id.progressBar);
     }
 
-    private void fetchUserProfile() {
-        new Thread(() -> {
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL("http://10.0.2.2:8000/api/profile/");
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Authorization", "Bearer " + getAccessToken());
-
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-
-                    JSONObject profileData = new JSONObject(response.toString());
-                    runOnUiThread(() -> {
-                        try {
-                            usernameEdit.setText(profileData.getString("username"));
-                            emailEdit.setText(profileData.getString("email"));
-                            totalTasksCount.setText(String.valueOf(profileData.getInt("total_tasks")));
-                            completedTasksCount.setText(String.valueOf(profileData.getInt("completed_tasks")));
-
-                            // Load profile picture (optional, if server provides URL)
-                            String profilePictureUrl = profileData.getString("profile_picture_url");
-                            if (!profilePictureUrl.isEmpty()) {
-                                // Use a library like Glide or Picasso to load the image
-                                Glide.with(this).load(profilePictureUrl).into(profilePicture);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Error fetching profile", Toast.LENGTH_SHORT).show()
-                );
-            } finally {
-                if (connection != null) connection.disconnect();
-            }
-        }).start();
-    }
-
-    private void setupUpdateButton() {
-        updateButton.setOnClickListener(v -> updateProfile());
-    }
-
-    private void setupUploadImageButton() {
-        uploadImageButton.setOnClickListener(v -> openImagePicker());
-    }
-
-    private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            selectedImageUri = data.getData();
-            profilePicture.setImageURI(selectedImageUri);
-            uploadProfilePicture();
+    private void loadAuthToken() {
+        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        authToken = prefs.getString("access_token", "");
+        if (authToken == null || authToken.isEmpty()) {
+            navigateToLogin();
         }
     }
 
-    private void uploadProfilePicture() {
-        new Thread(() -> {
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL("http://10.0.2.2:8000/api/profile/upload-picture/");
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Authorization", "Bearer " + getAccessToken());
-                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=boundary");
-                connection.setDoOutput(true);
-
-                DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
-                String boundary = "--boundary";
-
-                // Add file part
-                outputStream.writeBytes(boundary + "\r\n");
-                outputStream.writeBytes("Content-Disposition: form-data; name=\"profile_picture\"; filename=\"profile.jpg\"\r\n");
-                outputStream.writeBytes("Content-Type: image/jpeg\r\n\r\n");
-                byte[] imageData = Util.getBytesFromUri(getApplicationContext(), selectedImageUri);
-                outputStream.write(imageData);  // This will write the byte array
-
-                outputStream.writeBytes("\r\n");
-                outputStream.writeBytes(boundary + "--\r\n");
-
-                outputStream.flush();
-                outputStream.close();
-
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    runOnUiThread(() ->
-                            Toast.makeText(this, "Profile picture uploaded successfully", Toast.LENGTH_SHORT).show()
-                    );
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Error uploading profile picture", Toast.LENGTH_SHORT).show()
-                );
-            } finally {
-                if (connection != null) connection.disconnect();
-            }
-        }).start();
+    private void setupClickListeners() {
+        btnUploadPicture.setOnClickListener(v -> openImagePicker());
+        btnRemovePicture.setOnClickListener(v -> removeProfilePicture());
+        btnSaveProfile.setOnClickListener(v -> validateAndUpdateProfile());
     }
 
-    // ... existing code ...
+    private void validateAndUpdateProfile() {
+        String username = editUsername.getText().toString().trim();
+        String oldPassword = editOldPassword.getText().toString().trim();
+        String newPassword = editNewPassword.getText().toString().trim();
 
-    private void updateProfile() {
-        new Thread(() -> {
-            HttpURLConnection connection = null;
-            try {
-                // Your existing update profile logic here
+        if (username.isEmpty()) {
+            editUsername.setError("Username is required");
+            return;
+        }
 
-                // If update is successful
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    runOnUiThread(() -> {
+        if ((!oldPassword.isEmpty() && newPassword.isEmpty()) ||
+                (oldPassword.isEmpty() && !newPassword.isEmpty())) {
+            Toast.makeText(this, "Both old and new passwords are required for password change",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        updateUserProfile(username, oldPassword, newPassword);
+    }
+    private void updateUserProfile(String username, String oldPassword, String newPassword) {
+        showProgress();
+        try {
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("username", username);
+
+            if (!oldPassword.isEmpty() && !newPassword.isEmpty()) {
+                jsonBody.put("old_password", oldPassword);
+                jsonBody.put("new_password", newPassword);
+            }
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.PUT,
+                    BASE_URL + "/profile/user-update/",
+                    jsonBody,
+                    response -> {
+                        hideProgress();
                         Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                        setResult(RESULT_OK);  // Add this line
-                        finish();  // Add this line
-                    });
+                        editOldPassword.setText("");
+                        editNewPassword.setText("");
+                        loadUserProfile();
+                    },
+                    error -> {
+                        hideProgress();
+                        handleNetworkError(error);
+                    }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    return getAuthHeaders();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Error updating profile", Toast.LENGTH_SHORT).show()
-                );
-            } finally {
-                if (connection != null) connection.disconnect();
+            };
+
+            request.setRetryPolicy(new DefaultRetryPolicy(
+                    30000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+            Volley.newRequestQueue(this).add(request);
+        } catch (JSONException e) {
+            hideProgress();
+            Log.e(TAG, "JSON Error: " + e.getMessage());
+            Toast.makeText(this, "Error updating profile", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        imagePickerLauncher.launch(Intent.createChooser(intent, "Select Picture"));
+    }
+
+    private void loadUserProfile() {
+        showProgress();
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                BASE_URL + "/profile/",
+                null,
+                response -> {
+                    hideProgress();
+                    try {
+                        Log.d(TAG, "Profile Response: " + response.toString());
+                        editUsername.setText(response.getString("username"));
+
+                        String profilePicUrl = response.optString("profile_picture", "");
+                        if (!profilePicUrl.isEmpty()) {
+                            // Handle the relative URL format (/media/profile_pictures/profile.jpg)
+                            if (profilePicUrl.startsWith("/")) {
+                                profilePicUrl = "http://10.0.2.2:8000" + profilePicUrl;
+                            }
+                            // If it's not a complete URL already, add the base URL
+                            else if (!profilePicUrl.startsWith("http")) {
+                                profilePicUrl = BASE_URL + profilePicUrl;
+                            }
+
+                            Log.d(TAG, "Loading image from URL: " + profilePicUrl);
+
+                            Glide.with(this)
+                                    .load(profilePicUrl)
+                                    .placeholder(R.drawable.ic_profile)
+                                    .error(R.drawable.ic_profile)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE)  // Disable caching
+                                    .skipMemoryCache(true)                      // Skip memory caching
+                                    .into(imgProfilePicture);
+                        } else {
+                            imgProfilePicture.setImageResource(R.drawable.ic_profile);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Error parsing response: " + e.getMessage());
+                        Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    hideProgress();
+                    handleNetworkError(error);
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                return getAuthHeaders();
             }
-        }).start();
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                30000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        Volley.newRequestQueue(this).add(request);
     }
 
-    // Add this method to handle back button press
-    @Override
-    public void onBackPressed() {
-        setResult(RESULT_OK);
+    private void uploadProfilePicture(Uri imageUri) {
+        showProgress();
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, baos);
+            byte[] imageBytes = baos.toByteArray();
+
+            VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(
+                    Request.Method.PUT,
+                    BASE_URL + "/profile/update/",
+                    response -> {
+                        hideProgress();
+                        try {
+                            String responseString = new String(response.data);
+                            JSONObject jsonResponse = new JSONObject(responseString);
+                            Log.d(TAG, "Upload Response: " + responseString);
+
+                            loadUserProfile();
+                            Toast.makeText(this, "Profile picture updated successfully",
+                                    Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Error parsing upload response: " + e.getMessage());
+                            Toast.makeText(this, "Error updating profile picture",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    error -> {
+                        hideProgress();
+                        handleNetworkError(error);
+                    }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    return getAuthHeaders();
+                }
+
+                @Override
+                protected Map<String, DataPart> getByteData() {
+                    Map<String, DataPart> params = new HashMap<>();
+                    params.put("profile_picture", new DataPart("profile.jpg", imageBytes, "image/jpeg"));
+                    return params;
+                }
+            };
+
+            multipartRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    30000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+            Volley.newRequestQueue(this).add(multipartRequest);
+        } catch (IOException e) {
+            hideProgress();
+            Log.e(TAG, "Error processing image: " + e.getMessage());
+            Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void removeProfilePicture() {
+        showProgress();
+        StringRequest request = new StringRequest(
+                Request.Method.DELETE,
+                BASE_URL + "/profile/update/",
+                response -> {
+                    hideProgress();
+                    Glide.get(this).clearMemory();
+                    new Thread(() -> Glide.get(ProfileActivity.this).clearDiskCache()).start();
+
+                    imgProfilePicture.setImageResource(R.drawable.ic_profile);
+                    Toast.makeText(this, "Profile picture removed successfully",
+                            Toast.LENGTH_SHORT).show();
+                    loadUserProfile();
+                },
+                error -> {
+                    hideProgress();
+                    handleNetworkError(error);
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                return getAuthHeaders();
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                30000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    private Map<String, String> getAuthHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + authToken);
+        return headers;
+    }
+
+    private void handleNetworkError(VolleyError error) {
+        if (error.networkResponse != null) {
+            String errorMessage = new String(error.networkResponse.data);
+            Log.e(TAG, "Network error: " + error.networkResponse.statusCode + " - " + errorMessage);
+            Toast.makeText(this, "Network error: " + error.networkResponse.statusCode,
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Log.e(TAG, "Unknown network error", error);
+            Toast.makeText(this, "Unknown network error", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showProgress() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgress() {
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void navigateToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
         finish();
-        super.onBackPressed();
     }
-
-// ... existing code ...
-
-    private String getAccessToken() {
-        SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
-        return sharedPreferences.getString("access_token", null);
-    }
-
 }
