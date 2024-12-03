@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -26,7 +27,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login); // Make sure you have this layout for login
+        setContentView(R.layout.activity_login);
 
         usernameInput = findViewById(R.id.username_input);
         passwordInput = findViewById(R.id.password_input);
@@ -54,25 +55,29 @@ public class LoginActivity extends AppCompatActivity {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             try {
-                // Prepare the connection to the server
-                URL url = new URL(LOGIN_URL);
+                // Use superuser login endpoint for admin users
+                String loginEndpoint = username.equals("admin") ? 
+                    "http://10.0.2.2:8000/api/superuser-login/" : 
+                    "http://10.0.2.2:8000/api/login/";
+
+                URL url = new URL(loginEndpoint);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/json"); // Content type is JSON
+                connection.setRequestProperty("Content-Type", "application/json");
                 connection.setDoOutput(true);
 
-                // Prepare the JSON data for the POST request (changed "email" to "username")
+                // Prepare the JSON data
                 JSONObject loginData = new JSONObject();
-                loginData.put("username", username);  // Use "username" here
+                loginData.put("username", username);
                 loginData.put("password", password);
 
-                // Send the JSON data
+                // Send the request
                 try (OutputStream os = connection.getOutputStream()) {
                     os.write(loginData.toString().getBytes());
                     os.flush();
                 }
 
-                // Get the response from the server
+                // Get the response
                 int responseCode = connection.getResponseCode();
                 reader = new BufferedReader(new InputStreamReader(
                         responseCode == 200 ? connection.getInputStream() : connection.getErrorStream()
@@ -84,49 +89,47 @@ public class LoginActivity extends AppCompatActivity {
                     response.append(line);
                 }
 
-                // Log the raw response from the server
-                Log.d("LoginResponse", "Response: " + response.toString());
+                final JSONObject jsonResponse = new JSONObject(response.toString());
 
-                // Check for successful login (200 OK)
                 runOnUiThread(() -> {
                     try {
-                        JSONObject jsonResponse = new JSONObject(response.toString());
-
-                        // Check if the response contains access and refresh tokens
-                        if (jsonResponse.has("access") && jsonResponse.has("refresh")) {
-                            String accessToken = jsonResponse.getString("access");
-                            String refreshToken = jsonResponse.getString("refresh");
-
-                            // Store the tokens securely (e.g., in SharedPreferences)
-                            storeTokens(accessToken, refreshToken);
-
-                            // Show login successful message
-                            Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-
-                            // Navigate to the DashBoard activity after successful login
-                            navigateToDashBoard();
+                        if (responseCode == 200) {
+                            if (username.equals("admin")) {
+                                // Handle superuser login
+                                Intent intent = new Intent(LoginActivity.this, SuperuserDashboardActivity.class);
+                                intent.putExtra("auth_token", jsonResponse.getString("access"));
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                // Handle regular user login
+                                handleRegularUserLogin(jsonResponse);
+                            }
                         } else {
-                            // Handle the case where the tokens are missing
-                            Toast.makeText(this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, 
+                                jsonResponse.optString("message", "Login failed"), 
+                                Toast.LENGTH_SHORT).show();
                         }
-
-                    } catch (Exception e) {
+                    } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, 
+                            "Error processing response", 
+                            Toast.LENGTH_SHORT).show();
                     }
                 });
 
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(this, "An error occurred: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(LoginActivity.this, 
+                    "Error: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show());
             } finally {
-                // Close resources safely
-                try {
-                    if (reader != null) {
+                // Close resources
+                if (reader != null) {
+                    try {
                         reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
                 if (connection != null) {
                     connection.disconnect();
@@ -135,7 +138,14 @@ public class LoginActivity extends AppCompatActivity {
         }).start();
     }
 
-    // Method to store the tokens securely (SharedPreferences in this case)
+    private void handleRegularUserLogin(JSONObject response) throws JSONException {
+        String accessToken = response.getString("access");
+        String refreshToken = response.getString("refresh");
+        storeTokens(accessToken, refreshToken);
+        navigateToDashBoard();
+    }
+
+    // Method to store the tokens securely
     private void storeTokens(String accessToken, String refreshToken) {
         SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -146,7 +156,6 @@ public class LoginActivity extends AppCompatActivity {
 
     // Method to navigate to the home page after successful login
     private void navigateToDashBoard() {
-        // Example navigation, you can change it based on your app flow
         Intent intent = new Intent(LoginActivity.this, DashBoardActivity.class);
         startActivity(intent);
     }
@@ -156,27 +165,23 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         startActivity(intent);
     }
-    private void handleLoginResponse(JSONObject response) {
+
+    // In your login activity where you handle the successful login response
+    private void handleLoginSuccess(JSONObject response) {
         try {
-            String accessToken = response.getString("access");
-            String refreshToken = response.getString("refresh");
-
-            // Save tokens with "Bearer " prefix
-            SharedPreferences.Editor editor = getSharedPreferences("MyApp", MODE_PRIVATE).edit();
-            editor.putString("access_token", "Bearer " + accessToken);  // Add Bearer prefix here
-            editor.putString("refresh_token", refreshToken);
-            editor.apply();
-
-            // Log the token for debugging
-            Log.d("LoginActivity", "Token saved: Bearer " + accessToken);
-
-            // Navigate to Dashboard
-            Intent intent = new Intent(LoginActivity.this, DashBoardActivity.class);
+            String token = response.getString("access"); // Get the access token
+            
+            // Create intent for SuperuserDashboardActivity
+            Intent intent = new Intent(LoginActivity.this, SuperuserDashboardActivity.class);
+            
+            // Add the token as an extra to the intent
+            intent.putExtra("auth_token", token);
+            
             startActivity(intent);
-            finish();
+            finish(); // Close the login activity
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(LoginActivity.this, "Error parsing login response", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error processing login response", Toast.LENGTH_SHORT).show();
         }
     }
 }

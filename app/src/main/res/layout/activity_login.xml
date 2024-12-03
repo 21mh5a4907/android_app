@@ -32,8 +32,7 @@
             android:background="@drawable/rounded_corner"
             android:padding="18dp"
             android:inputType="textEmailAddress"
-            android:id="@+id/username_input"
-            android:contentDescription="Email input field"/>
+            android:id="@+id/username_input"/>
 
         <EditText
             android:layout_width="match_parent"
@@ -46,8 +45,7 @@
             android:background="@drawable/rounded_corner"
             android:padding="18dp"
             android:inputType="textPassword"
-            android:id="@+id/password_input"
-            android:contentDescription="Password input field"/>
+            android:id="@+id/password_input"/>
 
         <Button
             android:id="@+id/login_btn"
@@ -58,7 +56,6 @@
             android:contentDescription="Login button"
             android:text="Login"
             android:textColor="@color/white"
-            android:background="@drawable/rounded_corner"
             android:textSize="20sp" />
 
         <Button
@@ -68,9 +65,7 @@
             android:text="Go to Register"
             android:layout_marginTop="10dp"
             android:backgroundTint="#086DFD"
-            android:textColor="@color/white"
-            android:background="@drawable/rounded_corner"
-            android:contentDescription="Go to Register button"/>
+            android:textColor="@color/white"/>
 
     </LinearLayout>
 </RelativeLayout>

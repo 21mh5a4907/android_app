@@ -10,7 +10,8 @@
     <!-- Progress options -->
     <string-array name="progress_options">
         <item>All</item>
-        <item>Pending</item>
+        <item>yet-to-start</item>
+        <item>in-progress</item>
         <item>Completed</item>
     </string-array>
 </resources>

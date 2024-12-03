@@ -136,7 +136,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.PUT,
-                    BASE_URL + "/profile/user-update/",
+                    BASE_URL + "/user/update/",
                     jsonBody,
                     response -> {
                         hideProgress();

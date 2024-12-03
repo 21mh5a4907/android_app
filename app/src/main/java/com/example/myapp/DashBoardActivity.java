@@ -249,7 +249,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             try {
-                URL url = new URL("http://10.0.2.2:8000/api/tasks/list/");
+                URL url = new URL("http://10.0.2.2:8000/api/tasks/");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setDoInput(true);

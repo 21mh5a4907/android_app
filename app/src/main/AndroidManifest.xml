@@ -49,6 +49,9 @@
             android:name=".EditTaskActivity"
             android:exported="false"
             android:label="Edit Task" />
+        <activity
+            android:name=".SuperuserDashboardActivity"
+            android:exported="false" />
 
         <activity
             android:name=".CreateTaskActivity"
@@ -60,6 +63,8 @@
             android:exported="false"
             android:label="Profile" />
 
+        <activity android:name=".AdminLoginActivity"
+            android:exported="false"/>
     </application>
 
 </manifest>
