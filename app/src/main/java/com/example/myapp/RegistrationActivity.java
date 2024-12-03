@@ -14,13 +14,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 
 public class RegistrationActivity extends AppCompatActivity {
 
     private EditText usernameInput, emailInput, passwordInput;
     private String username, email, password;
-    private final String REGISTER_URL = "http://10.0.2.2:8000/api/register/";
+    private final String REGISTER_URL = "http://10.0.2.2:8000/api/signup/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,15 +53,14 @@ public class RegistrationActivity extends AppCompatActivity {
                 URL url = new URL(REGISTER_URL);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                connection.setRequestProperty("Content-Type", "application/json");
                 connection.setDoOutput(true);
 
-                String postData = "username=" + URLEncoder.encode(username, "UTF-8") +
-                        "&email=" + URLEncoder.encode(email, "UTF-8") +
-                        "&password=" + URLEncoder.encode(password, "UTF-8");
+                String jsonPayload = String.format("{\"username\":\"%s\",\"email\":\"%s\",\"password\":\"%s\"}",
+                        username, email, password);
 
                 try (OutputStream os = connection.getOutputStream()) {
-                    os.write(postData.getBytes());
+                    os.write(jsonPayload.getBytes("UTF-8"));
                     os.flush();
                 }
 
@@ -84,6 +82,7 @@ public class RegistrationActivity extends AppCompatActivity {
                         navigateToLogin();
                     } else {
                         Toast.makeText(this, "Registration failed: " + response, Toast.LENGTH_SHORT).show();
+                        Log.e("RegistrationError", "Response: " + response);
                     }
                 });
 
@@ -94,9 +93,8 @@ public class RegistrationActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void navigateToLogin()
-    {
-        Intent i=new Intent(RegistrationActivity.this, LoginActivity.class);
+    private void navigateToLogin() {
+        Intent i = new Intent(RegistrationActivity.this, LoginActivity.class);
         startActivity(i);
     }
 }
