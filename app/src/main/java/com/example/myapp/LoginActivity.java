@@ -55,12 +55,7 @@ public class LoginActivity extends AppCompatActivity {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             try {
-                // Use superuser login endpoint for admin users
-                String loginEndpoint = username.equals("admin") ? 
-                    "http://10.0.2.2:8000/api/superuser-login/" : 
-                    "http://10.0.2.2:8000/api/login/";
-
-                URL url = new URL(loginEndpoint);
+                URL url = new URL(LOGIN_URL);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json");
@@ -94,34 +89,25 @@ public class LoginActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     try {
                         if (responseCode == 200) {
-                            if (username.equals("admin")) {
-                                // Handle superuser login
-                                Intent intent = new Intent(LoginActivity.this, SuperuserDashboardActivity.class);
-                                intent.putExtra("auth_token", jsonResponse.getString("access"));
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                // Handle regular user login
-                                handleRegularUserLogin(jsonResponse);
-                            }
+                            handleRegularUserLogin(jsonResponse);
                         } else {
-                            Toast.makeText(LoginActivity.this, 
-                                jsonResponse.optString("message", "Login failed"), 
-                                Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this,
+                                    jsonResponse.optString("message", "Login failed"),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(LoginActivity.this, 
-                            "Error processing response", 
-                            Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this,
+                                "Error processing response",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
 
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(LoginActivity.this, 
-                    "Error: " + e.getMessage(), 
-                    Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(LoginActivity.this,
+                        "Error: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show());
             } finally {
                 // Close resources
                 if (reader != null) {
@@ -164,24 +150,5 @@ public class LoginActivity extends AppCompatActivity {
     private void navigateToRegister() {
         Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         startActivity(intent);
-    }
-
-    // In your login activity where you handle the successful login response
-    private void handleLoginSuccess(JSONObject response) {
-        try {
-            String token = response.getString("access"); // Get the access token
-            
-            // Create intent for SuperuserDashboardActivity
-            Intent intent = new Intent(LoginActivity.this, SuperuserDashboardActivity.class);
-            
-            // Add the token as an extra to the intent
-            intent.putExtra("auth_token", token);
-            
-            startActivity(intent);
-            finish(); // Close the login activity
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error processing login response", Toast.LENGTH_SHORT).show();
-        }
     }
 }

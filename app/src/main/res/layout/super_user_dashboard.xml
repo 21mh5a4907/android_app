@@ -198,4 +198,14 @@
                 android:dividerHeight="0dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Logout Button -->
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:backgroundTint="#F44336"
+        android:textColor="#FFFFFF"
+        android:layout_margin="16dp"/>
 </LinearLayout>

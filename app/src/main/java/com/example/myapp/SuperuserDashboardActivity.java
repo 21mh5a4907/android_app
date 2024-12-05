@@ -1,6 +1,7 @@
 package com.example.myapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -47,6 +48,7 @@ public class SuperuserDashboardActivity extends AppCompatActivity {
     private String authToken;
     private TextView userCountTextView;
     private TextView taskCountTextView;
+    private Button logoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +93,7 @@ public class SuperuserDashboardActivity extends AppCompatActivity {
         createUserButton = findViewById(R.id.createUserButton);
         usersListView = findViewById(R.id.usersListView);
         tasksListView = findViewById(R.id.tasksListView);
+        logoutButton = findViewById(R.id.logoutButton);
     }
 
     private void initializeCollections() {
@@ -131,6 +134,7 @@ public class SuperuserDashboardActivity extends AppCompatActivity {
         });
 
         createUserButton.setOnClickListener(v -> showCreateUserDialog());
+        logoutButton.setOnClickListener(v -> handleLogout());
     }
 
     private void searchUsers(String query) {
@@ -626,5 +630,57 @@ public class SuperuserDashboardActivity extends AppCompatActivity {
 
         configureRequest(request);
         requestQueue.add(request);
+    }
+
+    private void handleLogout() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> performLogout())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void performLogout() {
+        String url = "http://10.0.2.2:8000/api/logout/";
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, null,
+                response -> {
+                    Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                    // Clear any stored data
+                    clearUserData();
+                    // Navigate to login screen
+                    navigateToLogin();
+                },
+                error -> {
+                    // Even if logout fails on server, still clear local data and redirect
+                    Log.e("SuperuserDashboard", "Logout error", error);
+                    clearUserData();
+                    navigateToLogin();
+                }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return createAuthHeaders();
+            }
+        };
+
+        configureRequest(request);
+        requestQueue.add(request);
+    }
+
+    private void clearUserData() {
+        // Clear any stored user data, preferences, etc.
+        getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
+    }
+
+    private void navigateToLogin() {
+        Intent intent = new Intent(this, MainActivity.class);
+        // Clear the activity stack so user can't go back
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
