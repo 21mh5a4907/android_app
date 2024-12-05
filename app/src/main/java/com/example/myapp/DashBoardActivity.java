@@ -271,10 +271,11 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
                         errorResponse.append(line);
                     }
                     String finalErrorMessage = errorResponse.toString();
-                    runOnUiThread(() -> Toast.makeText(this, "Error: " + finalErrorMessage, Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> Toast.makeText(this, "Error  : " + finalErrorMessage, Toast.LENGTH_SHORT).show());
                     return;
                 }
 
+                // Replace the JSON parsing section in fetchTasksFromServer()
                 reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 StringBuilder response = new StringBuilder();
                 String line;
@@ -282,44 +283,32 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
                     response.append(line);
                 }
 
-                // Parse JSON response
-                JSONObject jsonResponse = new JSONObject(response.toString());
-                JSONArray tasksArray = jsonResponse.getJSONArray("results");
-                List<Task> tasks = new ArrayList<>();
+                String rawResponse = response.toString();
+                Log.d("API_RESPONSE", "Raw response: " + rawResponse);
 
-                // Log the raw JSON response
-                Log.d("TaskFetch", "Raw JSON response: " + response.toString());
-                Log.d("TaskFetch", "Number of tasks in response: " + tasksArray.length());
+                List<Task> tasks = new ArrayList<>();
+                JSONArray tasksArray = new JSONArray(rawResponse);  // Parse directly as JSONArray
 
                 for (int i = 0; i < tasksArray.length(); i++) {
                     JSONObject taskObject = tasksArray.getJSONObject(i);
-                    // Log the individual task JSON
-                    Log.d("TaskCreation", "Processing task JSON: " + taskObject.toString());
+                    Log.d("TASK_PARSING", "Processing task: " + taskObject.toString());
 
-                    int id = taskObject.getInt("id");
-                    String status = taskObject.getString("status");
-                    String priority = taskObject.getString("priority");
-                    String title = taskObject.getString("title");
-                    String description = taskObject.getString("description");
-
-                    Date dueDate = null;
-                    if (!taskObject.isNull("deadline")) {
-                        String deadlineStr = taskObject.getString("deadline");
-                        try {
-                            dueDate = apiDateFormat.parse(deadlineStr);
-                        } catch (ParseException e) {
-                            Log.e("DateParse", "Error parsing deadline: " + deadlineStr, e);
-                        }
+                    try {
+                        Task task = new Task(
+                                taskObject.getInt("id"),
+                                taskObject.getString("status"),
+                                taskObject.getString("priority"),
+                                !taskObject.isNull("deadline") ? apiDateFormat.parse(taskObject.getString("deadline")) : null,
+                                taskObject.getString("title"),
+                                taskObject.getString("description")
+                        );
+                        tasks.add(task);
+                        Log.d("TaskCreation", "Successfully created task: " + task.getTitle());
+                    } catch (Exception e) {
+                        Log.e("TaskCreation", "Error creating task from JSON: " + taskObject.toString(), e);
                     }
-
-                    Task task = new Task(id, status, priority, dueDate, title, description);
-                    tasks.add(task);
-                    Log.d("TaskCreation", String.format("Created task - Title: %s, Status: %s, Priority: %s, Deadline: %s",
-                            title, status, priority,
-                            dueDate != null ? apiDateFormat.format(dueDate) : "null"));
                 }
 
-                // Update UI on main thread
                 List<Task> finalTasks = tasks;
                 runOnUiThread(() -> {
                     allTasks = new ArrayList<>(finalTasks);
@@ -331,6 +320,7 @@ public class DashBoardActivity extends AppCompatActivity implements TaskAdapter.
                 Log.e("FetchTasksError", "Error fetching tasks", e);
                 String errorMessage = e.getMessage();
                 runOnUiThread(() -> Toast.makeText(this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show());
+
             } finally {
                 try {
                     if (reader != null) reader.close();
